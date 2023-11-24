@@ -32,7 +32,12 @@ class MainWindow : public QMainWindow {
 
     void on_pushButton_clicked();
 
+    void on_pushButton_open_3_clicked();
+
+    void on_pushButton_3_clicked();
+
   private:
+    int option = 0;
     Ui::MainWindow *ui;
     Compression* com;
     QString path;

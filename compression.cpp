@@ -1,4 +1,6 @@
 #include "compression.h"
+
+#include <QDir>
 //binarystringtoint 函数将二进制字符串转换为整数。
 int binarystringtoint(string binarystring) {
     int sum = 0;
@@ -26,6 +28,7 @@ string inttobinarystring(int value) {
         //在前方补零
         binarystring.insert(0, 8 - binarystring.size(), '0');
     }
+
     return binarystring;
 }
 //compare 函数是用于比较Huffman树节点权重的比较函数。
@@ -244,14 +247,14 @@ void Compression::zip(QString path, QString pathAfter) {
     int newlength = savefile.size();
     savefile.close();
     clock_t end = clock();
-    QString tip("理论压缩比:");
-    tip += QString::number(double(totalbitsize * 100) / source_string.size());
-    tip += "%,实际压缩比：";
-    tip += QString::number(double(newlength * 100) / source_string.size());
-    tip += "%,压缩用时：";
-    tip += QString::number(double(end - begin) / CLOCKS_PER_SEC);
-    tip += "s";
-    QMessageBox::about(this, "压缩说明", tip);
+//    QString tip("理论压缩比:");
+//    tip += QString::number(double(totalbitsize * 100) / source_string.size());
+//    tip += "%,实际压缩比：";
+//    tip += QString::number(double(newlength * 100) / source_string.size());
+//    tip += "%,压缩用时：";
+//    tip += QString::number(double(end - begin) / CLOCKS_PER_SEC);
+//    tip += "s";
+//    QMessageBox::about(this, "压缩说明", tip);
     weightmap.clear();
     passwordmap.clear();
     source_string.clear();
@@ -259,6 +262,117 @@ void Compression::zip(QString path, QString pathAfter) {
     DEL(container[0]);
     container.clear();
 }
+//void Compression::zip(QString path) {
+
+
+//    //记录开始时间
+//    clock_t begin = clock();
+//    //打开文件
+//    QFile openfile(path);
+//    if(!openfile.open(QIODevice::ReadOnly)) {
+//        QMessageBox::information(NULL, QString("警告"), QString("文件打开失败"));
+//        emit error();
+//        return;
+//    }
+
+//    qDebug() << fileEnd;
+//    //给字符赋予权重
+//    Weightmap_Init(openfile);
+
+//    //调节进度条
+//    emit mysignal(10);
+
+
+//    //初始化霍夫曼树节点
+//    HuffmanTreeVector_Init();
+//    emit mysignal(20);
+//    //构建霍夫曼树
+//    HuffmanTree_Init();
+//    emit mysignal(30);
+//    string empty = "";
+//    //获得霍夫曼编码
+//    ZipPassword_Init(container[0], empty);
+//    emit mysignal(40);
+//    //将源字符串转变为二进制字符串
+//    BinaryString_Init();
+//    emit mysignal(50);
+
+//    openfile.close();
+//    QFile savefile(pathAfter);
+//    savefile.open(QIODevice::WriteOnly);
+//    QDataStream out(&savefile);
+//    int size = passwordmap.size();
+//    if (size == 256) size = 0;
+//    int length = 0;
+//    //写入密码表的长度
+//    out << size;
+//    length++;
+//    double k = 1;
+//    for (map<unsigned char, string>::iterator it = passwordmap.begin(); it != passwordmap.end(); it++) {
+//        emit mysignal(50 + double(25 * k++) / passwordmap.size());
+//        int first = it->first;
+//        //写入字符
+//        out << first;
+//        length++;
+//        string second = it->second;
+//        int size = second.size();
+//        //写入密码长度
+//        out << size;
+//        length++;
+//        //写入密码
+//        int n = 8 - second.size() % 8;
+//        if (n) {
+//            //不足的补o
+//            second.append(n, '0');
+//        }
+//        for (int i = 0; i < second.size(); i += 8) {
+
+//            string k = second.substr(i, 8);
+//            int temp = binarystringtoint(k);
+//            unsigned char ch = temp;
+//            out << ch;
+//            length++;
+//        }
+//    }
+//    //写入源文件的二进制
+//    int n = 8 - binary_string.size() % 8;
+//    //写入补0的数目
+//    out << n;
+//    out << endNum;
+//    if (n) {
+//        binary_string.append(n, '0');
+//    }
+//    length++;
+//    int totalbitsize = binary_string.size() / 8;
+//    for (int i = 0; i < binary_string.size(); i += 8) {
+//        emit mysignal(75 + double(25 * i) / binary_string.size());
+//        string k = binary_string.substr(i, 8);
+//        int temp = binarystringtoint(k);
+//        unsigned char ch = temp;
+//        out << ch;
+//        length++;
+//    }
+
+
+//    emit mysignal(100);
+//    int newlength = savefile.size();
+//    savefile.close();
+//    clock_t end = clock();
+//    //    QString tip("理论压缩比:");
+//    //    tip += QString::number(double(totalbitsize * 100) / source_string.size());
+//    //    tip += "%,实际压缩比：";
+//    //    tip += QString::number(double(newlength * 100) / source_string.size());
+//    //    tip += "%,压缩用时：";
+//    //    tip += QString::number(double(end - begin) / CLOCKS_PER_SEC);
+//    //    tip += "s";
+//    //    QMessageBox::about(this, "压缩说明", tip);
+//    weightmap.clear();
+//    passwordmap.clear();
+//    source_string.clear();
+//    binary_string.clear();
+//    DEL(container[0]);
+//    container.clear();
+//}
 //unzip 函数实现文件解压缩操作，包括读取压缩文件中的信息，构建压缩密码映射表，解析二进制字符串并写入解压文件。
 void Compression::unzip(QString path, QString pathAfter) {
     if(pathAfter == "") {
@@ -269,11 +383,7 @@ void Compression::unzip(QString path, QString pathAfter) {
     //记录开始时间
     clock_t begin = clock();
     //判断后缀名是否符合
-    if(path.right(11) != ".HuffmanZip") {
-        QMessageBox::information(NULL, QString("警告"), QString("此文件非哈夫曼压缩文件，打开失败"));
-        emit error();
-        return;
-    }
+
     QFile openfile(path);
     if(!openfile.open(QIODevice::ReadOnly)) {
         QMessageBox::information(NULL, QString("警告"), QString("文件打开失败"));
@@ -368,10 +478,171 @@ void Compression::unzip(QString path, QString pathAfter) {
     }
     emit mysignal(100);
     savefile.close();
-    clock_t end = clock();
-    QString tip = "解压用时:";
-    tip += QString::number(double(end - begin) / CLOCKS_PER_SEC);
-    tip += "s";
-    QMessageBox::about(this, "解压说明", tip);
+//    clock_t end = clock();
+//    QString tip = "解压用时:";
+//    tip += QString::number(double(end - begin) / CLOCKS_PER_SEC);
+//    tip += "s";
+//    QMessageBox::about(this, "解压说明", tip);
     zippassword.clear();
 }
+
+void Compression::zipSingleFile(const QString& filePath, QString outputPath) {
+    // 这里放置你单个文件的压缩逻辑
+    // 例如，打开文件，进行压缩，保存到输出路径等
+}
+void Compression::zip(const QStringList& filePaths, QString outputPath) {
+    QStringList tempPaths; // To store the paths of intermediate compressed files
+    QString tempPath;
+    for (const QString& filePath : filePaths) {
+        QFile inputFile(filePath);
+        if (!inputFile.open(QIODevice::ReadOnly)) {
+            qDebug() << "Failed to open input file: " << filePath;
+            continue;
+        }
+
+        // Use a temporary file path for each input file
+        QStringList list1 = filePath.split("/");
+        QString tem = list1[list1.size() - 1];
+        QStringList temp = tem.split(".");
+        QString name = temp[0];
+        fileEnd = temp[1];
+        qDebug() << fileEnd;
+        endNum = fileEnd.size();
+
+
+        list1.remove(list1.size() - 1, 1);
+        QString tem1;
+        for(int i = 0; i < list1.size(); i++) {
+            tem1 += list1[i] + "/";
+        }
+        tem1.removeAt(tem1.size() - 1);
+        // Compress the input file and save the compressed file to the temporary path
+        zip(filePath, tem1);
+
+
+
+        tem1 += "/";
+        tem1 += name;
+        tem1 += ".HuffmanZip";
+        tempPaths.append(tem1);
+        qDebug() << "nnnnnnnn" << tem1;
+        inputFile.close();
+    }
+    QStringList tempOut = outputPath.split("/");
+
+    tempPath = outputPath + "/" + tempOut[tempOut.size() - 1] + ".huff";
+    qDebug() << "                    " + tempOut[tempOut.size() - 1] ;
+    qDebug() << "                    " + tempPath;
+    QFile outputZipFile(tempPath);
+    if (!outputZipFile.open(QIODevice::WriteOnly)) {
+        qDebug() << "Failed to open output zip file";
+        return;
+    }
+
+    QDataStream out(&outputZipFile);
+
+    // Write the number of files in the archive
+    out << static_cast<quint64>(filePaths.size());
+
+    // Loop through each file and compress
+    for (const QString& filePath : tempPaths) {
+        QFile inputFile(filePath);
+        if (!inputFile.open(QIODevice::ReadOnly)) {
+            qDebug() << "Failed to open input file: " << filePath;
+            continue;
+        }
+
+        QByteArray fileData = inputFile.readAll();
+        inputFile.close();
+
+        // Write the file name length and file name
+        out << static_cast<quint64>(filePath.size());
+        out.writeRawData(filePath.toUtf8(), filePath.size());
+
+        // Write the file content length and content
+        out << static_cast<quint64>(fileData.size());
+        out.writeRawData(fileData.data(), fileData.size());
+        QFile::remove(filePath);
+    }
+
+
+    outputZipFile.close();
+}
+
+
+void Compression::zipFolder(const QString& folderPath, const QString& outputZipPath) {
+    QDir folderDir(folderPath);
+
+    if (!folderDir.exists()) {
+        QMessageBox::information(NULL, QString("警告"), QString("文件夹不存在"));
+        emit error();
+        return;
+    }
+
+    QFileInfoList fileList = folderDir.entryInfoList(QDir::Files);
+    QStringList fileNames;
+
+    for (const QFileInfo& fileInfo : fileList) {
+        fileNames.append(fileInfo.absoluteFilePath());
+    }
+
+    // 将文件列表压缩为一个压缩文件
+    zip(fileNames, outputZipPath);
+}
+void Compression::unzipDir(const QString& inputPath, const QString& outputDir) {
+    QFile inputFile(inputPath);
+    if (!inputFile.open(QIODevice::ReadOnly)) {
+        qDebug() << "Failed to open input zip file: " << inputPath;
+        return;
+    }
+    QStringList temp;
+    QDataStream in(&inputFile);
+
+    // Read the number of files in the archive
+    quint64 numFiles;
+    in >> numFiles;
+
+    // Loop through each file and decompress
+    for (quint64 i = 0; i < numFiles; ++i) {
+        // Read the file name length and file name
+        quint64 fileNameLength;
+        in >> fileNameLength;
+        QByteArray fileNameData(fileNameLength, '\0');
+        in.readRawData(fileNameData.data(), fileNameLength);
+        QString fileName = QString::fromUtf8(fileNameData);
+
+        // Read the file content length and content
+        quint64 fileContentLength;
+        in >> fileContentLength;
+        QByteArray fileContent(fileContentLength, '\0');
+        in.readRawData(fileContent.data(), fileContentLength);
+        QStringList list1 = fileName.split("/");
+        QString tem = list1[list1.size() - 1];
+        QStringList temp = tem.split(".");
+        QString name = temp[0];
+
+        // Construct the output file path
+        QString outputFilePath = outputDir + "/" + name + "." + temp[1];
+
+        qDebug() << outputFilePath;
+
+
+        // Write the decompressed content to the output file
+        QFile outputFile(outputFilePath);
+        if (!outputFile.open(QIODevice::WriteOnly)) {
+            qDebug() << "Failed to open output file: " << outputFilePath;
+            continue;
+        }
+        outputFile.write(fileContent);
+        outputFile.close();
+        // 解压缩单个文件
+        unzip(outputFilePath, outputDir + "/" + name);
+
+        // 删除中间产生的压缩文件
+        QFile::remove(outputFilePath);
+    }
+
+    inputFile.close();
+    //依次打开temp中的文件然后解压
+}
+

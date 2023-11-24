@@ -30,6 +30,7 @@ void MainWindow::myslot(double per) {
 }
 
 void MainWindow::on_pushButton_open_clicked() {
+    option = 0;
     path = QFileDialog::getOpenFileName(this, QString("选择文件"));
 
     ui->lineEdit->setText(path);
@@ -38,24 +39,59 @@ void MainWindow::on_pushButton_open_clicked() {
 
 
 void MainWindow::on_pushButton_compression_clicked() {
-    pathAfter = ui->lineEdit_2->text();
-    com->zip(path, pathAfter);
-    ui->lineEdit->clear();
-    ui->lineEdit_2->clear();
-    this->path.clear();
-    this->pathAfter.clear();
-    ui->progressBar->setValue(0);
+    if(option == 0) {
+        pathAfter = ui->lineEdit_2->text();
+        com->zip(path, pathAfter);
+        ui->lineEdit->clear();
+        ui->lineEdit_2->clear();
+        ui->lineEdit_5->clear();
+        ui->lineEdit_6->clear();
+        ui->lineEdit->clear();
+        ui->lineEdit_2->clear();
+        this->path.clear();
+        this->pathAfter.clear();
+        ui->progressBar->setValue(0);
+    } else {
+        pathAfter = ui->lineEdit_6->text();
+        com->zipFolder(path, pathAfter);
+        ui->lineEdit_5->clear();
+        ui->lineEdit_6->clear();
+        ui->lineEdit_5->clear();
+        ui->lineEdit_6->clear();
+        ui->lineEdit->clear();
+        ui->lineEdit_2->clear();
+        this->path.clear();
+        this->pathAfter.clear();
+        ui->progressBar->setValue(0);
+    }
+    option = 0;
 }
 
 void MainWindow::on_pushButton_decompression_clicked() {
-    pathAfter = ui->lineEdit_2->text();
-    com->unzip(path, pathAfter);
-    ui->lineEdit->clear();
-    ui->lineEdit_2->clear();
+    if(option == 0) {
+        pathAfter = ui->lineEdit_2->text();
+        com->unzip(path, pathAfter);
+        ui->lineEdit->clear();
+        ui->lineEdit_2->clear();
+        ui->lineEdit_5->clear();
+        ui->lineEdit_6->clear();
+        ui->lineEdit->clear();
+        ui->lineEdit_2->clear();
+        this->path.clear();
+        this->pathAfter.clear();
+        ui->progressBar->setValue(0);
+    } else {
+        pathAfter = ui->lineEdit_6->text();
+        com->unzipDir(path, pathAfter);
+        ui->lineEdit_5->clear();
+        ui->lineEdit_6->clear();
+        ui->lineEdit->clear();
+        ui->lineEdit_2->clear();
 
-    this->path.clear();
-    this->pathAfter.clear();
-    ui->progressBar->setValue(0);
+        this->path.clear();
+        this->pathAfter.clear();
+        ui->progressBar->setValue(0);
+    }
 }
 
 
@@ -65,7 +101,23 @@ void MainWindow::on_pushButton_open_2_clicked() {
 
 
 void MainWindow::on_pushButton_clicked() {
+    option = 0;
     pathAfter = QFileDialog::getExistingDirectory(this, QString("决定操作后的文件位置"));
     ui->lineEdit_2->setText(pathAfter);
+}
+
+
+void MainWindow::on_pushButton_open_3_clicked() {
+    option = 1;
+    path = QFileDialog::getExistingDirectory(this, QString("选择文件夹"));
+
+    ui->lineEdit_5->setText(path);
+}
+
+
+void MainWindow::on_pushButton_3_clicked() {
+    option = 1;
+    pathAfter = QFileDialog::getExistingDirectory(this, QString("决定操作后的文件位置"));
+    ui->lineEdit_6->setText(pathAfter);
 }
 

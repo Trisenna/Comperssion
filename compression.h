@@ -31,7 +31,13 @@ class Compression : public QMainWindow {
     explicit Compression(QWidget *parent = nullptr);
     void zip(QString path, QString pathAfter);
     void unzip(QString path, QString pathAfter);
-  protected:
+    void zipFolder(const QString &folderPath, const QString &outputZipPath);
+    void zipSingleFile(const QString &filePath, QString outputPath);
+    void zip(const QStringList &filePaths, QString outputPath);
+
+    void unzipDir(const QString &inputPath, const QString &outputDir);
+    void zip(QString path);
+protected:
     void DEL(HuffmanTreeNode*& root);
     void BinaryString_Init();
     void Weightmap_Init(QFile& in);
