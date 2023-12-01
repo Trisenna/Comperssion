@@ -490,8 +490,9 @@ void Compression::zipSingleFile(const QString& filePath, QString outputPath) {
     // 这里放置你单个文件的压缩逻辑
     // 例如，打开文件，进行压缩，保存到输出路径等
 }
-void Compression::zip(const QStringList& filePaths, QString outputPath) {
+void Compression::zip(const QStringList& filePaths, const QString& folderPath, QString outputPath) {
     QStringList tempPaths; // To store the paths of intermediate compressed files
+    QDir folderDir(folderPath);
     QString tempPath;
     for (const QString& filePath : filePaths) {
         QFile inputFile(filePath);
@@ -556,8 +557,10 @@ void Compression::zip(const QStringList& filePaths, QString outputPath) {
         inputFile.close();
 
         // Write the file name length and file name
-        out << static_cast<quint64>(filePath.size());
-        out.writeRawData(filePath.toUtf8(), filePath.size());
+        out << static_cast<quint64>(folderDir.relativeFilePath(filePath).size());
+
+        qDebug() << ">>>>>>>>>>>>" + folderDir.relativeFilePath(filePath);
+        out.writeRawData(folderDir.relativeFilePath(filePath).toUtf8(), folderDir.relativeFilePath(filePath).size());
 
         // Write the file content length and content
         out << static_cast<quint64>(fileData.size());
@@ -569,7 +572,6 @@ void Compression::zip(const QStringList& filePaths, QString outputPath) {
     outputZipFile.close();
 }
 
-
 void Compression::zipFolder(const QString& folderPath, const QString& outputZipPath) {
     QDir folderDir(folderPath);
 
@@ -579,23 +581,41 @@ void Compression::zipFolder(const QString& folderPath, const QString& outputZipP
         return;
     }
 
-    QFileInfoList fileList = folderDir.entryInfoList(QDir::Files);
     QStringList fileNames;
+    QStringList relativeFileNames; // Added to store relative paths
 
-    for (const QFileInfo& fileInfo : fileList) {
-        fileNames.append(fileInfo.absoluteFilePath());
-    }
+    // Recursively get all files within the folder and its subfolders
+    getAllFilesInFolder(folderPath, fileNames, relativeFileNames);
 
     // 将文件列表压缩为一个压缩文件
-    zip(fileNames, outputZipPath);
+    zip(fileNames, folderPath, outputZipPath); // Pass both fileNames and relativeFileNames
 }
+
+void Compression::getAllFilesInFolder(const QString& folderPath, QStringList& fileList, QStringList& relativeFileList) {
+    QDir folderDir(folderPath);
+
+    QFileInfoList fileInfoList = folderDir.entryInfoList(QDir::Files);
+    for (const QFileInfo& fileInfo : fileInfoList) {
+        fileList.append(fileInfo.absoluteFilePath());
+        relativeFileList.append(folderDir.relativeFilePath(fileInfo.absoluteFilePath())); // Record relative path
+    }
+
+    // Recursively get files from subfolders
+    QStringList subfolderList = folderDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+    for (const QString& subfolder : subfolderList) {
+        QString subfolderPath = folderPath + "/" + subfolder;
+        getAllFilesInFolder(subfolderPath, fileList, relativeFileList);
+    }
+}
+
+
 void Compression::unzipDir(const QString& inputPath, const QString& outputDir) {
     QFile inputFile(inputPath);
     if (!inputFile.open(QIODevice::ReadOnly)) {
         qDebug() << "Failed to open input zip file: " << inputPath;
         return;
     }
-    QStringList temp;
+
     QDataStream in(&inputFile);
 
     // Read the number of files in the archive
@@ -616,16 +636,18 @@ void Compression::unzipDir(const QString& inputPath, const QString& outputDir) {
         in >> fileContentLength;
         QByteArray fileContent(fileContentLength, '\0');
         in.readRawData(fileContent.data(), fileContentLength);
-        QStringList list1 = fileName.split("/");
-        QString tem = list1[list1.size() - 1];
-        QStringList temp = tem.split(".");
-        QString name = temp[0];
 
-        // Construct the output file path
-        QString outputFilePath = outputDir + "/" + name + "." + temp[1];
+        // Construct the relative output file path
+        QString relativeFilePath = fileName;
+        QString name = fileName.split(".")[0];
 
-        qDebug() << outputFilePath;
+        qDebug() << ">>>>>>>>>>>>>>>>" + relativeFilePath;
 
+        // Construct the output file path with relative structure
+        QString outputFilePath = outputDir + "/" + relativeFilePath;
+
+        // Create directories if they don't exist
+        QDir().mkpath(QFileInfo(outputFilePath).path());
 
         // Write the decompressed content to the output file
         QFile outputFile(outputFilePath);
@@ -643,6 +665,4 @@ void Compression::unzipDir(const QString& inputPath, const QString& outputDir) {
     }
 
     inputFile.close();
-    //依次打开temp中的文件然后解压
 }
-
